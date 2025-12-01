@@ -1,6 +1,5 @@
-# DeClercq_2025_oral_microbiome_lung_cancer
+# DeClercq_2025_Oral_Microbiome_Lung_Cancer
 
-# DECLERCQ_et_al_2023_Oral_Microbiome_Frailty.
 This repository contains all of the code used to analyze results found in DeClercq et al., 2025
 “Association between the oral microbiome and clinical indicators of resectable non-small cell lung cancer (NSCLC).
 The R file contains all of the code used for analysis. 
