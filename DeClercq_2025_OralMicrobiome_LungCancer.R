@@ -1,37 +1,21 @@
 ---
   title: "LungCancer_Study"
 author: "Vanessa DeClercq"
-date: "2025-07-16"
+date: "2025-12-01"
 output: html_document
 ---
   
-  ## R Markdown for Wallace Lung Cancer Study
+## R Markdown for Oral Microbiome Lung Cancer Study
   
-  #Read in files
-  ```{r }
-setwd("~/Desktop/LungCancer_Study_March2025/Saliva_analysis_November2025")
-library(readr)
-
-
+#Read in files
 #read metadata files
 metadata <- read_csv("metadata.csv")
-metadata_EFS6mon <- read_csv("metadata_EFS6mon.csv")
-metadata_EFS1yr <- read_csv("metadata_EFS1yr.csv")
-metadata_abx <- read_csv("metadata_abx.csv")
-
 rownames(metadata) <- metadata$Saliva_sampleID
-rownames(metadata_EFS6mon) <- metadata_EFS6mon$Saliva_sampleID
-rownames(metadata_EFS1yr) <- metadata_EFS1yr$Saliva_sampleID
-rownames(metadata_abx) <- metadata_abx$Saliva_sampleID
-
 View(metadata) 
 
 #check that variables are ready as numeric or string variables
 print(sapply(metadata, class))
 
-
-#change to factor
-filtered_alpha$SampleID = as.numeric(filtered_alpha$SampleID)
 
 ```
 
@@ -156,7 +140,7 @@ View(filtered_metadata)
 for (i in 2:5){print(shapiro.test(filtered_alpha[,i]))}
 #results show none are normal so I will have to use non-parametric tests moving forward.
 
-#I don't want the 'unknown' response from the 'stage_cat'column. replace the unknowns with blanks.
+#I don't want the 'unknown' response from the 'stage_cat'column. Replace the unknowns with blanks.
 filtered_metadata$abx_6mon_prior <-replace(filtered_metadata$abx_6mon_prior, filtered_metadata$abx_6mon_prior=="n/a", NA)
 filtered_metadata$abx_3mon_prior <-replace(filtered_metadata$abx_3mon_prior, filtered_metadata$abx_3mon_prior=="n/a", NA)
 
@@ -211,343 +195,6 @@ ggsave("observed_features_STAGE.pdf",  width = 6, height = 4)
 ggsave("observed_features.png")
 
 
-ggplot(data=subset(alpha_metadata, !is.na(stage_cat)), aes(x=stage_cat, y=pielou_evenness, fill=stage_cat)) +geom_point() + 
-  ylim(c(0.5,1)) + 
-  stat_boxplot(geom ='errorbar', width = 0.5) +
-  geom_boxplot(outlier.color = NA,outlier.size = 0,outlier.shape = NA) +
-  labs(x = "Cancer Stage", y = "Pielou Evenness") +
-  labs(fill = "Cancer Stage") +
-  scale_fill_manual(values=c("#1B9E77", "#D95F02", "#7570B3")) +
-  theme_bw() +
-  ggtitle("Pielou Evenness") +
-  theme(plot.title = element_text(size = rel(1.5), face = "bold")) +
-  geom_jitter(shape=16, position=position_jitter(0.2), size = 2) +
-  theme(axis.title.x = element_text(size =16, face = "bold"))+
-  theme(axis.title.y = element_text(size = 16, face = "bold", angle = 90))+
-  theme(axis.text = element_text(size =14)) +
-  theme(legend.title = element_text(size = 14, face = "bold"))+
-  theme(legend.text = element_text(size = 14))
-ggsave("pielou_evenness_Stage.pdf",  width = 6, height = 4)
-ggsave("pielou_evenness.png")
-
-ggplot(data=subset(alpha_metadata, !is.na(stage_cat)), aes(x=stage_cat, y=faith_pd, fill=stage_cat)) +geom_point() +   ylim(c(1,12.0)) + 
-  stat_boxplot(geom ='errorbar', width = 0.5) +
-  geom_boxplot(outlier.color = NA,outlier.size = 0,outlier.shape = NA) +
-  labs(x = "Cancer Stage", y = "Faith's PD") +
-  labs(fill = "Cancer Stage") +
-  scale_fill_manual(values=c("#1B9E77", "#D95F02", "#7570B3")) +
-  theme_bw() +
-  ggtitle("Faith's Phylogenetic Diversity (PD)") +
-  theme(plot.title = element_text(size = rel(1.5), face = "bold")) +
-  geom_jitter(shape=16, position=position_jitter(0.2), size = 2) +
-  theme(axis.title.x = element_text(size =16, face = "bold"))+
-  theme(axis.title.y = element_text(size = 16, face = "bold", angle = 90))+
-  theme(axis.text = element_text(size =14)) +
-  theme(legend.title = element_text(size = 14, face = "bold"))+
-  theme(legend.text = element_text(size = 14))
-ggsave("faith_pd_stage.pdf",  width = 6, height = 4)
-ggsave("faith_pd.png")
-
-ggplot(data=subset(alpha_metadata, !is.na(stage_cat)), aes(x=stage_cat, y=shannon, fill=stage_cat)) +geom_point() + 
-  ylim(c(3,8)) + 
-  stat_boxplot(geom ='errorbar', width = 0.5) +
-  geom_boxplot(outlier.color = NA,outlier.size = 0,outlier.shape = NA) +
-  labs(x = "Cancer Stage", y = "Shannon Diversity") +
-  labs(fill = "Cancer Stage") +
-  scale_fill_manual(values=c("#1B9E77", "#D95F02", "#7570B3")) +
-  theme_bw() +
-  ggtitle("Shannon Diversity") +
-  theme(plot.title = element_text(size = rel(1.5), face = "bold")) +
-  geom_jitter(shape=16, position=position_jitter(0.2), size = 2) +
-  theme(axis.title.x = element_text(size =16, face = "bold"))+
-  theme(axis.title.y = element_text(size = 16, face = "bold", angle = 90))+
-  theme(axis.text = element_text(size =14)) +
-  theme(legend.title = element_text(size = 14, face = "bold"))+
-  theme(legend.text = element_text(size = 14))
-ggsave("shannon_entropy_Stage.pdf",  width = 6, height = 4)
-ggsave("shannon_entropy.png")
-
-
-#plots alpha diversity by sex
-ggplot(data=subset(alpha_metadata, !is.na(Sex)), aes(x=Sex, y=observed_features, fill = Sex)) +geom_point() + 
-  ylim(c(0,200)) + 
-  stat_boxplot(geom ='errorbar', width = 0.5) +
-  geom_boxplot(alpha=1, color=1, outlier.shape = NA) +
-  labs(x = "Sex", y = "Observed Features") +
-  labs(fill = "Sex") +
-  scale_fill_manual(values=c("#66A61E", "#E6AB02")) +
-  theme_bw() +
-  ggtitle("Observed Features") +
-  theme(plot.title = element_text(size = rel(1.5), face = "bold")) +
-  geom_jitter(shape=16, position=position_jitter(0.2), size = 2) +
-  theme(axis.title.x = element_text(size =16, face = "bold"))+
-  theme(axis.title.y = element_text(size = 16, face = "bold", angle = 90))+
-  theme(axis.text = element_text(size =14)) +
-  theme(legend.title = element_text(size = 14, face = "bold"))+
-  theme(legend.text = element_text(size = 14))
-ggsave("sex_observed_features.pdf",  width = 6, height = 4)
-ggsave("sex_observed_features.png")
-
-
-ggplot(data=subset(alpha_metadata, !is.na(Sex)), aes(x=Sex, y=pielou_evenness, fill=Sex)) +geom_point() + 
-  ylim(c(0.5,1)) + 
-  stat_boxplot(geom ='errorbar', width = 0.5) +
-  geom_boxplot(outlier.color = NA,outlier.size = 0,outlier.shape = NA) +
-  labs(x = "Sex", y = "Pielou Evenness") +
-  labs(fill = "Sex") +
-  scale_fill_manual(values=c("#66A61E", "#E6AB02")) +
-  theme_bw() +
-  ggtitle("Pielou Evenness") +
-  theme(plot.title = element_text(size = rel(1.5), face = "bold")) +
-  geom_jitter(shape=16, position=position_jitter(0.2), size = 2) +
-  theme(axis.title.x = element_text(size =16, face = "bold"))+
-  theme(axis.title.y = element_text(size = 16, face = "bold", angle = 90))+
-  theme(axis.text = element_text(size =14)) +
-  theme(legend.title = element_text(size = 14, face = "bold"))+
-  theme(legend.text = element_text(size = 14))
-ggsave("sex_pielou_evenness.pdf",  width = 6, height = 4)
-ggsave("sex_pielou_evenness.png")
-
-ggplot(data=subset(alpha_metadata, !is.na(Sex)), aes(x=Sex, y=faith_pd, fill=Sex)) +geom_point() +   ylim(c(1,10.0)) + 
-  stat_boxplot(geom ='errorbar', width = 0.5) +
-  geom_boxplot(outlier.color = NA,outlier.size = 0,outlier.shape = NA) +
-  labs(x = "Sex", y = "Faith's PD") +
-  labs(fill = "Sex") +
-  scale_fill_manual(values=c("#66A61E", "#E6AB02")) +
-  theme_bw() +
-  ggtitle("Faith's Phylogenetic Diversity (PD)") +
-  theme(plot.title = element_text(size = rel(1.5), face = "bold")) +
-  geom_jitter(shape=16, position=position_jitter(0.2), size = 2) +
-  theme(axis.title.x = element_text(size =16, face = "bold"))+
-  theme(axis.title.y = element_text(size = 16, face = "bold", angle = 90))+
-  theme(axis.text = element_text(size =14)) +
-  theme(legend.title = element_text(size = 14, face = "bold"))+
-  theme(legend.text = element_text(size = 14))
-ggsave("sex_faith_pd.pdf",  width = 6, height = 4)
-ggsave("sex_faith_pd.png")
-
-ggplot(data=subset(alpha_metadata, !is.na(Sex)), aes(x=Sex, y=shannon, fill=Sex)) +geom_point() + 
-  ylim(c(3,6)) + 
-  stat_boxplot(geom ='errorbar', width = 0.5) +
-  geom_boxplot(outlier.color = NA,outlier.size = 0,outlier.shape = NA) +
-  labs(x = "Sex", y = "Shannon Diversity") +
-  labs(fill = "Sex") +
-  scale_fill_manual(values=c("#66A61E", "#E6AB02")) +
-  theme_bw() +
-  ggtitle("Shannon Diversity") +
-  theme(plot.title = element_text(size = rel(1.5), face = "bold")) +
-  geom_jitter(shape=16, position=position_jitter(0.2), size = 2) +
-  theme(axis.title.x = element_text(size =16, face = "bold"))+
-  theme(axis.title.y = element_text(size = 16, face = "bold", angle = 90))+
-  theme(axis.text = element_text(size =14)) +
-  theme(legend.title = element_text(size = 14, face = "bold"))+
-  theme(legend.text = element_text(size = 14))
-ggsave("sex_shannon_entropy.pdf",  width = 6, height = 4)
-ggsave("sex_shannon_entropy.png")
-
-
-
-ggplot(data=subset(alpha_metadata, !is.na(PDL1)), aes(x=PDL1, y=observed_features, fill = PDL1)) +geom_point() + 
-  ylim(c(0,370)) + 
-  stat_boxplot(geom ='errorbar', width = 0.5) +
-  geom_boxplot(alpha=1, color=1, outlier.shape = NA) +
-  labs(x = "PD-L1 Status", y = "Observed Features") +
-  labs(fill = "PDL1") +
-  scale_fill_manual(values=c("#66A61E", "#E6AB02", "deeppink3")) +
-  theme_bw() +
-  ggtitle("Observed Features") +
-  theme(plot.title = element_text(size = rel(1.5), face = "bold")) +
-  geom_jitter(shape=16, position=position_jitter(0.2), size = 2) +
-  theme(axis.title.x = element_text(size =16, face = "bold"))+
-  theme(axis.title.y = element_text(size = 16, face = "bold", angle = 90))+
-  theme(axis.text = element_text(size =14)) +
-  theme(legend.title = element_text(size = 14, face = "bold"))+
-  theme(legend.text = element_text(size = 14))
-ggsave("PDL1_observed_features.pdf",  width = 6, height = 4)
-ggsave("PDL1_observed_features.png")
-
-ggplot(data=subset(alpha_metadata, !is.na(PDL1)), aes(x=PDL1, y=pielou_evenness, fill = PDL1)) +geom_point() + 
-  ylim(c(0.5,1)) + 
-  stat_boxplot(geom ='errorbar', width = 0.5) +
-  geom_boxplot(outlier.color = NA,outlier.size = 0,outlier.shape = NA) +
-  labs(x = "PD-L1 Status", y = "Pielou Evenness") +
-  labs(fill = "PDL1") +
-  scale_fill_manual(values=c("#66A61E", "#E6AB02", "deeppink3")) +
-  theme_bw() +
-  ggtitle("Pielou Evenness") +
-  theme(plot.title = element_text(size = rel(1.5), face = "bold")) +
-  geom_jitter(shape=16, position=position_jitter(0.2), size = 2) +
-  theme(axis.title.x = element_text(size =16, face = "bold"))+
-  theme(axis.title.y = element_text(size = 16, face = "bold", angle = 90))+
-  theme(axis.text = element_text(size =14)) +
-  theme(legend.title = element_text(size = 14, face = "bold"))+
-  theme(legend.text = element_text(size = 14))
-ggsave("PDL1_pielou_evenness.pdf",  width = 6, height = 4)
-ggsave("PDL1_pielou_evenness.png")
-
-ggplot(data=subset(alpha_metadata, !is.na(PDL1)), aes(x=PDL1, y=faith_pd, fill = PDL1)) +geom_point() +   ylim(c(1,12.0)) + 
-  stat_boxplot(geom ='errorbar', width = 0.5) +
-  geom_boxplot(outlier.color = NA,outlier.size = 0,outlier.shape = NA) +
-  labs(x = "PD-L1 Status", y = "Faith's PD") +
-  labs(fill = "PDL1") +
-  scale_fill_manual(values=c("#66A61E", "#E6AB02", "deeppink3")) +
-  theme_bw() +
-  ggtitle("Faith's Phylogenetic Diversity (PD)") +
-  theme(plot.title = element_text(size = rel(1.5), face = "bold")) +
-  geom_jitter(shape=16, position=position_jitter(0.2), size = 2) +
-  theme(axis.title.x = element_text(size =16, face = "bold"))+
-  theme(axis.title.y = element_text(size = 16, face = "bold", angle = 90))+
-  theme(axis.text = element_text(size =14)) +
-  theme(legend.title = element_text(size = 14, face = "bold"))+
-  theme(legend.text = element_text(size = 14))
-ggsave("PDL1_faith_pd.pdf",  width = 6, height = 4)
-ggsave("PDL1_faith_pd.png")
-
-ggplot(data=subset(alpha_metadata, !is.na(PDL1)), aes(x=PDL1, y=shannon, fill = PDL1)) +geom_point() + 
-  ylim(c(3,8)) + 
-  stat_boxplot(geom ='errorbar', width = 0.5) +
-  geom_boxplot(outlier.color = NA,outlier.size = 0,outlier.shape = NA) +
-  labs(x = "PD-L1 Status", y = "Shannon Diversity") +
-  labs(fill = "PDL1") +
-  scale_fill_manual(values=c("#66A61E", "#E6AB02", "deeppink3")) +
-  theme_bw() +
-  ggtitle("Shannon Diversity") +
-  theme(plot.title = element_text(size = rel(1.5), face = "bold")) +
-  geom_jitter(shape=16, position=position_jitter(0.2), size = 2) +
-  theme(axis.title.x = element_text(size =16, face = "bold"))+
-  theme(axis.title.y = element_text(size = 16, face = "bold", angle = 90))+
-  theme(axis.text = element_text(size =14)) +
-  theme(legend.title = element_text(size = 14, face = "bold"))+
-  theme(legend.text = element_text(size = 14))
-ggsave("PDL1_shannon_entropy.pdf",  width = 6, height = 4)
-ggsave("PDL1_shannon_entropy.png")
-
-
-ggplot(data=subset(alpha_metadata, !is.na(X6mon_EFS)), 
-       aes(x=X6mon_EFS, y=observed_features, fill =X6mon_EFS)) +geom_point() + 
-  ylim(c(0,370)) + 
-  stat_boxplot(geom ='errorbar', width = 0.5) +
-  geom_boxplot(alpha=1, color=1, outlier.shape = NA) +
-  labs(x = "EFS at 6 months", y = "Observed Features") +
-  labs(fill = "X6mon_EFS") +
-  scale_fill_manual(values=c("#0072B2", "#D55E00")) +
-  theme_bw() +
-  ggtitle("Observed Features") +
-  theme(plot.title = element_text(size = rel(1.5), face = "bold")) +
-  geom_jitter(shape=16, position=position_jitter(0.2), size = 2) +
-  theme(axis.title.x = element_text(size =16, face = "bold"))+
-  theme(axis.title.y = element_text(size = 16, face = "bold", angle = 90))+
-  theme(axis.text = element_text(size =14)) +
-  theme(legend.title = element_text(size = 14, face = "bold"))+
-  theme(legend.text = element_text(size = 14))
-ggsave("EFS_6mon_observed_features.pdf",  width = 6, height = 4)
-ggsave("EFS_6mon_observed_features.png")
-
-ggplot(data=subset(alpha_metadata, !is.na(X6mon_EFS)), aes(x=X6mon_EFS, y=pielou_evenness, fill = X6mon_EFS)) +geom_point() + 
-  ylim(c(0.5,1)) + 
-  stat_boxplot(geom ='errorbar', width = 0.5) +
-  geom_boxplot(outlier.color = NA,outlier.size = 0,outlier.shape = NA) +
-  labs(x = "EFS at 6 months", y = "Pielou Evenness") +
-  labs(fill = "X6mon_EFS") +
-  scale_fill_manual(values=c("#0072B2", "#D55E00")) +
-  theme_bw() +
-  ggtitle("Pielou Evenness") +
-  theme(plot.title = element_text(size = rel(1.5), face = "bold")) +
-  geom_jitter(shape=16, position=position_jitter(0.2), size = 2) +
-  theme(axis.title.x = element_text(size =16, face = "bold"))+
-  theme(axis.title.y = element_text(size = 16, face = "bold", angle = 90))+
-  theme(axis.text = element_text(size =14)) +
-  theme(legend.title = element_text(size = 14, face = "bold"))+
-  theme(legend.text = element_text(size = 14))
-ggsave("EFS_6mon_pielou_evenness.pdf",  width = 6, height = 4)
-ggsave("EFS_6mon_pielou_evenness.png")
-
-ggplot(data=subset(alpha_metadata, !is.na(X6mon_EFS)), aes(x=X6mon_EFS, y=faith_pd, fill = X6mon_EFS)) +geom_point() +   ylim(c(1,12.0)) + 
-  stat_boxplot(geom ='errorbar', width = 0.5) +
-  geom_boxplot(outlier.color = NA,outlier.size = 0,outlier.shape = NA) +
-  labs(x = "EFS at 6 months", y = "Faith's PD") +
-  labs(fill = "X6mon_EFS") +
-  scale_fill_manual(values=c("#0072B2", "#D55E00")) +
-  theme_bw() +
-  ggtitle("Faith's Phylogenetic Diversity (PD)") +
-  theme(plot.title = element_text(size = rel(1.5), face = "bold")) +
-  geom_jitter(shape=16, position=position_jitter(0.2), size = 2) +
-  theme(axis.title.x = element_text(size =16, face = "bold"))+
-  theme(axis.title.y = element_text(size = 16, face = "bold", angle = 90))+
-  theme(axis.text = element_text(size =14)) +
-  theme(legend.title = element_text(size = 14, face = "bold"))+
-  theme(legend.text = element_text(size = 14))
-ggsave("EFS_6mon_faith_pd.pdf",  width = 6, height = 4)
-ggsave("EFS_6mon_faith_pd.png")
-
-ggplot(data=subset(alpha_metadata, !is.na(X6mon_EFS)), aes(x=X6mon_EFS, y=shannon, fill = X6mon_EFS)) +geom_point() + 
-  ylim(c(3,10)) + 
-  stat_boxplot(geom ='errorbar', width = 0.5) +
-  geom_boxplot(outlier.color = NA,outlier.size = 0,outlier.shape = NA) +
-  labs(x = "EFS at 6 months", y = "Shannon Diversity") +
-  labs(fill = "X6mon_EFS") +
-  scale_fill_manual(values=c("#0072B2", "#D55E00")) +
-  theme_bw() +
-  ggtitle("Shannon Diversity") +
-  theme(plot.title = element_text(size = rel(1.5), face = "bold")) +
-  geom_jitter(shape=16, position=position_jitter(0.2), size = 2) +
-  theme(axis.title.x = element_text(size =16, face = "bold"))+
-  theme(axis.title.y = element_text(size = 16, face = "bold", angle = 90))+
-  theme(axis.text = element_text(size =14)) +
-  theme(legend.title = element_text(size = 14, face = "bold"))+
-  theme(legend.text = element_text(size = 14))
-ggsave("EFS_6mon_shannon_entropy.pdf",  width = 6, height = 4)
-ggsave("EFS_6mon_shannon_entropy.png")
-
-
-Smoking_Status. scale_color_manual(values=c("#332288", "#882255", "#6699CC"), name="Smoking Status", labels=c("Current", "Former", "Never"))+
-  Stage.  scale_fill_manual(values=c("#1B9E77", "#D95F02", "#7570B3"))
-Sex. ("#66A61E", "#E6AB02")
-Substype. ("red", "#075AFF", "grey")"
- PDL1.  scale_fill_manual(values=c("#66A61E", "#E6AB02", "deeppink3")) +
-EFS scale_color_manual(values=c("#0072B2", "#D55E00"), name="EFS", labels=c("No", "Yes"))
-#abx scale_color_manual(values=c("("darkgrey","lightpink")) ), labels=c("No", "Yes")).
-
-
-ggplot(data=subset(alpha_metadata, !is.na(histological_type_cat)), aes(x=histological_type_cat, y=observed_features, fill = histological_type_cat)) +geom_point() + 
-  ylim(c(0,370)) + 
-  stat_boxplot(geom ='errorbar', width = 0.5) +
-  geom_boxplot(alpha=1, color=1, outlier.shape = NA) +
-  labs(x = "Histological Subtype", y = "Observed Features") +
-  labs(fill = "Subtype") +
-  scale_fill_manual(values=c("red", "#075AFF", "grey")) +
-  theme_bw() +
-  ggtitle("Observed Features") +
-  theme(plot.title = element_text(size = rel(1.5), face = "bold")) +
-  geom_jitter(shape=16, position=position_jitter(0.2), size = 2) +
-  theme(axis.title.x = element_text(size =16, face = "bold"))+
-  theme(axis.title.y = element_text(size = 16, face = "bold", angle = 90))+
-  theme(axis.text = element_text(size =14)) +
-  theme(legend.title = element_text(size = 14, face = "bold"))+
-  theme(legend.text = element_text(size = 14))+
-  theme(legend.position = "none")
-ggsave("observed_features_subtype.pdf",  width = 6, height = 4)
-
-
-ggplot(data=subset(alpha_metadata, !is.na(abx_3mon_prior)), aes(x=abx_3mon_prior, y=observed_features, fill = abx_3mon_prior)) +geom_point() + 
-  ylim(c(0,370)) + 
-  stat_boxplot(geom ='errorbar', width = 0.5) +
-  geom_boxplot(alpha=1, color=1, outlier.shape = NA) +
-  labs(x = "Antibiotic Use in Past 3 Months", y = "Observed Features") +
-  labs(fill = "Abx 3mon") +
-  scale_fill_manual(values=c("darkgrey","lightpink")) +
-  theme_bw() +
-  ggtitle("Observed Features") +
-  theme(plot.title = element_text(size = rel(1.5), face = "bold")) +
-  geom_jitter(shape=16, position=position_jitter(0.2), size = 2) +
-  theme(axis.title.x = element_text(size =16, face = "bold"))+
-  theme(axis.title.y = element_text(size = 16, face = "bold", angle = 90))+
-  theme(axis.text = element_text(size =14)) +
-  theme(legend.title = element_text(size = 14, face = "bold"))+
-  theme(legend.text = element_text(size = 14))+
-  theme(legend.position = "none")
-ggsave("observed_features_abx3mon.pdf",  width = 6, height = 4)
-
 
 #correlation with alpha diversity
 plot(filtered_metadata$age_at_surgery, filtered_alpha$observed_features, 
@@ -562,48 +209,6 @@ test
 test2 <- cor.test(filtered_alpha$observed_features, filtered_metadata$age_at_surgery,
                   method=c("spearman"))    
 test2
-
-plot(filtered_metadata$age_at_surgery, filtered_alpha$faith_pd, 
-     xlab="Age (years)", ylab="Faith's Phylogenetic Diversity (PD)", 
-     xlim = c(50, 90), ylim = c(0, 15), 
-     pch=19, cex.axis = 1, cex.lab = 1.5, las=1)
-abline(lm(filtered_alpha$faith_pd ~ filtered_metadata$age_at_surgery),
-       col = "blue", lwd=7)
-test <- cor.test(filtered_alpha$faith_pd, filtered_metadata$age_at_surgery, 
-                 method=c("pearson"))    
-test
-test2 <- cor.test(filtered_alpha$faith_pd, filtered_metadata$age_at_surgery,
-                  method=c("spearman"))    
-test2
-
-
-plot(filtered_metadata$age_at_surgery, filtered_alpha$pielou_evenness, 
-     xlab="Age (years)", ylab="Pielou Evenness", 
-     xlim = c(50, 90), ylim = c(0.5, 1.2), 
-     pch=19, cex.axis = 1, cex.lab = 1.5, las=1)
-abline(lm(filtered_alpha$pielou_evenness ~ filtered_metadata$age_at_surgery),
-       col = "blue", lwd=7)
-test <- cor.test(filtered_alpha$pielou_evenness, filtered_metadata$age_at_surgery, 
-                 method=c("pearson"))    
-test
-test2 <- cor.test(filtered_alpha$pielou_evenness, filtered_metadata$age_at_surgery,
-                  method=c("spearman"))    
-test2
-
-
-plot(filtered_metadata$age_at_surgery, filtered_alpha$shannon, 
-     xlab="Age (years)", ylab="Shannon Diversity", 
-     xlim = c(50, 90), ylim = c(1, 9), 
-     pch=19, cex.axis = 1, cex.lab = 1.5, las=1)
-abline(lm(filtered_alpha$shannon ~ filtered_metadata$age_at_surgery),
-       col = "blue", lwd=7)
-test <- cor.test(filtered_alpha$shannon, filtered_metadata$age_at_surgery, 
-                 method=c("pearson"))    
-test
-test2 <- cor.test(filtered_alpha$shannon, filtered_metadata$age_at_surgery,
-                  method=c("spearman"))    
-test2
-
 
 
 ```
@@ -657,47 +262,6 @@ samples_to_keep2 <- intersect(rownames(bray_curtis),rownames(filtered_metadata))
 filtered_metadata_bray <- as.data.frame(filtered_metadata[samples_to_keep2,])
 rownames(filtered_metadata_bray) <- filtered_metadata_bray[,1]
 View(filtered_metadata_bray)
-
-
-
-intersect(rownames(metadata),rownames(weighted_unifrac))
-samples_to_keep <- intersect(rownames(metadata),rownames(weighted_unifrac))
-filtered_weighted_unifrac <- as.data.frame(weighted_unifrac[samples_to_keep,])
-rownames(filtered_weighted_unifrac) <- filtered_weighted_unifrac[,1]
-View(filtered_weighted_unifrac)
-
-filtered_weighted_unifrac <- t(filtered_weighted_unifrac)
-intersect(rownames(filtered_metadata),rownames(filtered_weighted_unifrac))
-samples_to_keep <- intersect(rownames(filtered_metadata),rownames(filtered_weighted_unifrac))
-filtered_weighted_unifrac <- as.data.frame(filtered_weighted_unifrac[samples_to_keep,])
-rownames(filtered_bray_curtis) <- filtered_weighted_unifrac[,1]
-View(filtered_weighted_unifrac)
-
-intersect(rownames(metadata),rownames(jaccard))
-samples_to_keep <- intersect(rownames(metadata),rownames(jaccard))
-filtered_jaccard <- as.data.frame(jaccard[samples_to_keep,])
-rownames(filtered_jaccard) <- filtered_jaccard[,1]
-View(filtered_jaccard)
-
-filtered_jaccard <- t(filtered_jaccard)
-intersect(rownames(filtered_metadata),rownames(filtered_jaccard))
-samples_to_keep <- intersect(rownames(filtered_metadata),rownames(filtered_jaccard))
-filtered_jaccard <- as.data.frame(filtered_jaccard[samples_to_keep,])
-rownames(filtered_jaccard) <- filtered_jaccard[,1]
-View(filtered_jaccard)
-
-intersect(rownames(metadata),rownames(unweighted_unifrac))
-samples_to_keep <- intersect(rownames(metadata),rownames(unweighted_unifrac))
-filtered_unweighted_unifrac <- as.data.frame(unweighted_unifrac[samples_to_keep,])
-rownames(filtered_unweighted_unifrac) <- filtered_unweighted_unifrac[,1]
-View(filtered_unweighted_unifrac)
-
-filtered_unweighted_unifrac <- t(filtered_unweighted_unifrac)
-intersect(rownames(filtered_metadata),rownames(filtered_unweighted_unifrac))
-samples_to_keep <- intersect(rownames(filtered_metadata),rownames(filtered_unweighted_unifrac))
-filtered_unweighted_unifrac <- as.data.frame(filtered_unweighted_unifrac[samples_to_keep,])
-rownames(filtered_unweighted_unifrac) <- filtered_unweighted_unifrac[,1]
-View(filtered_unweighted_unifrac)
 
 
 #adonis test - permutational ANOVA of dissimilarities
@@ -1454,127 +1018,6 @@ fit_out <- maaslin3(input_data = filtered_taxa_abx,
 
 
 
-
-
-#MaAsLin2 DA analysis
-#BiocManAGEr::install("Maaslin2")
-library(Maaslin2)
-#finds multivariable associations between taxa and metadata based on GLM 
-#unadjusted Maaslin2 models
-results <- Maaslin2(input_data = filtered_taxa, 
-                    input_metadata = metadata, 
-                    output = "Maaslin_output_age", 
-                    transform = "AST", 
-                    fixed_effects = c("age_at_surgery"),
-                    reference="age_at_surgery,52")
-View(results[[1]])
-
-results <- Maaslin2(input_data = filtered_taxa, 
-                    input_metadata = filtered_metadata, 
-                    output = "Maaslin_output_Sex", 
-                    transform = "AST", 
-                    fixed_effects = c("Sex"),
-                    reference="Sex,female")
-View(results[[1]])
-
-results <- Maaslin2(input_data = filtered_taxa, 
-                    input_metadata = filtered_metadata, 
-                    output = "Maaslin_output_smoking", 
-                    transform = "AST", 
-                    fixed_effects = c("Smoking_Status"),
-                    reference="Smoking_Status,Never")
-View(results[[1]])
-
-
-results <- Maaslin2(input_data = filtered_taxa, 
-                    input_metadata = filtered_metadata, 
-                    output = "Maaslin_output_stage", 
-                    transform = "AST", 
-                    fixed_effects = c("stage_cat"),
-                    reference="stage_cat,I")
-View(results[[1]])
-
-results <- Maaslin2(input_data = filtered_taxa, 
-                    input_metadata = filtered_metadata, 
-                    output = "Maaslin_output_subtype", 
-                    transform = "AST", 
-                    fixed_effects = c("histological_type_cat"),
-                    reference="histological_type_cat,adenocarcinoma")
-View(results[[1]])
-
-results <- Maaslin2(input_data = filtered_taxa, 
-                    input_metadata = filtered_metadata, 
-                    output = "Maaslin_output_PDL1", 
-                    transform = "AST", 
-                    fixed_effects = c("PDL1"),
-                    reference="PDL1,<1%")
-View(results[[1]])
-
-results <- Maaslin2(input_data = filtered_taxa, 
-                    input_metadata = filtered_metadata, 
-                    output = "Maaslin_output_mutations", 
-                    transform = "AST", 
-                    fixed_effects = c("Mutations"),
-                    reference="Mutations,EGFR")
-View(results[[1]])
-
-results <- Maaslin2(input_data = filtered_taxa, 
-                    input_metadata = filtered_metadata, 
-                    output = "Maaslin_output_EFS_3mon", 
-                    transform = "AST", 
-                    fixed_effects = c("EFS_3mon"),
-                    reference="EFS_3mon,NO")
-View(results[[1]])
-
-#adjusted model
-results <- Maaslin2(input_data = filtered_taxa, 
-                    input_metadata = filtered_metadata, 
-                    output = "Maaslin_output_stage_SEX_adjusted", 
-                    transform = "AST", 
-                    fixed_effects = c("stage_cat", "Sex"),
-                    reference="stage_cat,I")
-View(results[[1]])
-
-
-
-#for variables with missing data
-
-results <- Maaslin2(input_data = filtered_taxa_EFS6mon, 
-                    input_metadata = filtered_metadata_EFS6mon, 
-                    output = "Maaslin_output_EFS_6mon", 
-                    transform = "AST", 
-                    fixed_effects = c("EFS_6mon"),
-                    reference="EFS_6mon,NO")
-View(results[[1]])
-
-results <- Maaslin2(input_data = filtered_taxa_EFS1yr, 
-                    input_metadata = filtered_metadata_EFS1yr, 
-                    output = "Maaslin_output_EFS_1yr", 
-                    transform = "AST", 
-                    fixed_effects = c("EFS_1yr"),
-                    reference="EFS_1yr,NO")
-View(results[[1]])
-
-
-results <- Maaslin2(input_data = filtered_taxa_abx, 
-                    input_metadata = filtered_metadata_abx, 
-                    output = "Maaslin_output_abx_3mon", 
-                    transform = "AST", 
-                    fixed_effects = c("abx_3mon_prior"),
-                    reference="abx_3mon_prior,No")
-View(results[[1]])
-
-results <- Maaslin2(input_data = filtered_taxa_abx, 
-                    input_metadata = filtered_metadata_abx, 
-                    output = "Maaslin_output_abx_6mon", 
-                    transform = "AST", 
-                    fixed_effects = c("abx_6mon_prior"),
-                    reference="abx_6mon_prior,No")
-View(results[[1]])
-
-
-
-
 #ANCOM2 DA analysis
 library(compositions)
 library(tidyr)
@@ -1749,32 +1192,6 @@ results$p_fdr
 results$significant_taxa
 results$significant_models
 which(results$p <0.05)
-results$p[7]
-results$p[12]
-results$p[19]
-results$p[21]
-results$p[22]
-results$p[24]
-results$p[34]
-results$p[47]
-results$p[49]
-results$p[51]
-results$p[85]
-results$p[93]
-results$all_models[7]
-results$all_models[12]
-results$all_models[19]
-results$all_models[21]
-results$all_models[22]
-results$all_models[24]
-results$all_models[34]
-results$all_models[47]
-results$all_models[49]
-results$all_models[51]
-results$all_models[85]
-results$all_models[93]
-
-
 
 #wtih covariates
 results <- differentialTest(formula = ~ stage_cat + Sex,
@@ -1789,28 +1206,6 @@ results$p_fdr
 results$significant_taxa
 results$significant_models
 which(results$p <0.05)
-results$p[7]
-results$p[9]
-results$p[19]
-results$p[22]
-results$p[24]
-results$p[34]
-results$p[47]
-results$p[51]
-results$p[85]
-results$p[93]
-
-results$all_models[7]
-results$all_models[9]
-results$all_models[19]
-results$all_models[22]
-results$all_models[24]
-results$all_models[34]
-results$all_models[47]
-results$all_models[51]
-results$all_models[85]
-results$all_models[93]
-
 
 results <- differentialTest(formula = ~ histological_type_cat,
                             phi.formula = ~ histological_type_cat,
@@ -1823,12 +1218,6 @@ results$p_fdr
 results$significant_taxa
 results$significant_models
 which(results$p <0.05)
-results$p[19]
-results$p[22]
-results$p[47]
-results$all_models[19]
-results$all_models[22]
-results$all_models[47]
 
 
 results <- differentialTest(formula = ~ PDL1,
@@ -1843,14 +1232,6 @@ results$p_fdr
 results$significant_taxa
 results$significant_models
 which(results$p <0.05)
-results$p[19]
-results$p[43]
-results$p[47]
-results$p[93]
-results$all_models[19]
-results$all_models[43]
-results$all_models[47]
-results$all_models[93]
 
 
 results <- differentialTest(formula = ~ EFS_3mon,
@@ -1866,21 +1247,9 @@ results$p_fdr
 results$significant_taxa
 results$significant_models
 which(results$p <0.05)
-results$p[1]
-results$p[7]
-results$p[19]
-results$p[28]
-results$p[39]
-results$p[46]
-results$all_models[1]
-results$all_models[7]
-results$all_models[19]
-results$all_models[28]
-results$all_models[39]
-results$all_models[46]
 
 
-### read in specific files for variables iwth missing/NA values
+### read in specific files for variables with missing/NA values
 
 #(filter taxa to match samples in the metadata file).
 intersect(rownames(filtered_metadata_EFS6mon), rownames(taxa_table))
@@ -1903,23 +1272,14 @@ View(filtered_taxa_abx)
 
 #flip table so taxa are rows, samples columns
 rare_filter_table_EFS6mon <- t(filtered_taxa_EFS6mon)
-rare_filter_table_EFS6mon <- rare_filter_table_EFS6mon[-c(109:110),]
-View(rare_filter_table_EFS6mon)
-
 rare_filter_table_EFS1yr <- t(filtered_taxa_EFS1yr)
-rare_filter_table_EFS1yr <- rare_filter_table_EFS1yr[-c(109:110),]
-View(rare_filter_table_EFS1yr)
-
 rare_filter_table_abx <- t(filtered_taxa_abx)
-rare_filter_table_abx <- rare_filter_table_abx[-c(109:110),]
-View(rare_filter_table_abx)
 
 
 #make phyloseq object
 otu_tab_EFS6mon <- otu_table(rare_filter_table_EFS6mon,taxa_are_rows = TRUE)
 sam_data_EFS6mon <- sample_data(filtered_metadata_EFS6mon)
 phylo_EFS6mon <- phyloseq(otu_tab_EFS6mon, sam_data_EFS6mon)
-
 
 otu_tab_EFS1yr <- otu_table(rare_filter_table_EFS1yr,taxa_are_rows = TRUE)
 sam_data_EFS1yr <- sample_data(filtered_metadata_EFS1yr)
@@ -1973,16 +1333,6 @@ results <- differentialTest(formula = ~ abx_3mon_prior,
 results$p_fdr
 results$significant_taxa
 which(results$p <0.05)
-results$p[1]
-results$all_models[1]
-results$p[6]
-results$all_models[6]
-results$p[35]
-results$all_models[35]
-results$p[37]
-results$all_models[37]
-results$p[42]
-results$all_models[42]
 
 results <- differentialTest(formula = ~ abx_6mon_prior,
                             phi.formula = ~ abx_6mon_prior,
@@ -1998,14 +1348,6 @@ results$p_fdr
 results$significant_taxa
 results$significant_models
 which(results$p <0.05)
-results$p[19]
-results$all_models[19]
-results$p[29]
-results$all_models[29]
-results$p[30]
-results$all_models[30]
-results$p[93]
-results$all_models[93]
 
 
 #ALDEx2 DA analysis
@@ -2018,7 +1360,7 @@ matrixmodel <- model.matrix(~Sex, filtered_metadata)
 View(matrixmodel)
 #for uncorrected, remove covariates.
 
-#generate Monte Carlo samples of the Dirichlet distribution, performs centred log-ratio transformation.
+#generate Monte Carlo samples of the Dirichlet distribution, perform centred log-ratio transformation.
 CLR <- aldex.clr(rare_filter_table, matrixmodel, mc.samples = 128)
 #calculates the expected values for each coefficient of a glm model on the data returned by aldex.clr
 GLM <- aldex.glm(CLR, matrixmodel)
@@ -2081,103 +1423,8 @@ View(GLM)
 
 
 
-
 ```
-
-
-##stacked barchart
-
-#for taxa file - species as columns and your samples as rows
-
-```{r}
-library(ggplot2)
-library(reshape2)
-library(ggpubr)
-library("dplyr")
-library("ggpubr")
-library("ggplot2")
-
-
-#read metadata
-metadata <- read_csv("metadata.csv")
-rownames(metadata) <- metadata$Saliva_sampleID
-View(metadata) 
-
-#read taxa file
-taxa_table <- read.csv("freature-table_top10_genera.csv", header = TRUE)
-
-taxa_table <- read_csv("~/Desktop/LungCancer_Study_March2025/Saliva_analysis_July2025/feature-table_solobacterium.csv")
-taxa_table <- as.data.frame(taxa_table)
-rownames(taxa_table) <- taxa_table[,1]
-taxa_table <- as.data.frame(taxa_table[,-c(1:1)])
-taxa_table <- as.data.frame(taxa_table[-c(110:111),])
-View(taxa_table)
-
-taxa_table <- t(taxa_table)
-
-
-#create taxa table with only samples of interest
-#(filter taxa to match samples in the metadata file).
-intersect(rownames(taxa_table), rownames(metadata))
-samples_to_keep <- intersect(rownames(taxa_table), rownames(metadata))
-filtered_taxa <- taxa_table[samples_to_keep,]
-filtered_taxa <- as.data.frame(filtered_taxa[,-c(1:1)])
-View(filtered_taxa)
-
-RA <- sweep(filtered_taxa, 1,rowSums(filtered_taxa), "/")
-
-level_2 <- as.data.frame(level_2)
-rownames(level_2) <- level_2[,1]
-level_2 <- as.data.frame(level_2[,-c(1:1)])
-View(level_2)
-RA <- sweep(level_2, 1,rowSums(level_2), "/")
-rowSums(RA)
-colnames(RA)
-
-RA$names <- rownames(RA)
-View(RA)
-
-#convert data frame from a "wide" format to a "long" format
-RA_melt = melt(RA, id = c("names"))
-RA_melt = melt(RA, id = c("names"))
-
-#pick colors
-colours = c( "#A54657", "#86BBD8", "#33658A", "#1B9E77", "#D95F02", "#7570B3", "#E7298A", "#66A61E" ,"#E6AB02")
-
-
-colours = c( "#A54657", "#86BBD8", "#33658A", "#1B9E77", "#D95F02", "#7570B3", "#E7298A", "#66A61E" ,"#E6AB02", "#A6761D", "#666666")
-
-
-#make the plot!
-stacked_boxplot = ggplot(RA_melt, aes(x = names, fill = variable, y = value*100)) + 
-  geom_bar(stat = "identity", colour = "black") + 
-  theme(axis.text.x = element_text(angle = 90, size = 14, colour = "black", vjust = 0.5, hjust = 1, face= "bold"), 
-        axis.title.y = element_text(size = 16, face = "bold"), legend.title = element_text(size = 16, face = "bold"),
-        legend.text = element_text(size = 12, face = "bold", colour = "black"), 
-        axis.text.y = element_text(colour = "black", size = 12, face = "bold")) + 
-  scale_y_continuous(expand = c(0,0)) + 
-  labs(x = "Sample", y = "Relative Abundance (%)", fill = "Genus") + 
-  scale_fill_manual(values = colours)
-stacked_boxplot
-
-
-
-#heatmap
-DF <- data.frame(RA,metadata$stage_cat)
-
-RA_melt = melt(DF, id = c("metadata.stage_cat"))
-
-heatmap = ggplot(RA_melt, aes(x = metadata.stage_cat, fill = value, y = variable)) + 
-  geom_tile(color ="black",lwd = 1.5,linetype = 1)+
-  geom_text(aes(label = value), color = "white", size = 4)+
-  guides(fill= guide_colorbar(title = "Relative Abundance"))+
-  scale_fill_gradient2(low = "#075AFF",
-                       mid = "#FFFFCC",
-                       high = "#FF0000")
-
-
-
-#RA of specific taxa by cancer stage
+#RA of specific taxa 
 RA <- sweep(rare_filter_table, 2, colSums(rare_filter_table), "/")
 colSums(RA)
 
