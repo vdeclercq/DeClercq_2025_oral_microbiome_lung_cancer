@@ -1,0 +1,609 @@
+---
+title: "Oral_Microbiome_LungCancer_Study"
+author: "Vanessa DeClercq"
+date: "2025-07-16"
+output: html_document
+---
+
+## Metadata Analysis
+-normality test 
+-Descriptive analysis (counts, mean, median, SD, IQR) of covariates - sex, AGE, BMI, ETC.
+
+Examples:
+mean(metadata$age_at_surgery)
+sd(metadata$age_at_surgery)
+median(metadata$age_at_surgery)
+IQR(metadata$age_at_surgery)
+range(metadata$age_at_surgery)
+
+```{r}
+#check for normality
+shapiro.test(metadata$age_at_surgery)
+
+#counts of each gp
+table(metadata$stage_cat)
+
+#summary table of participants age by sex
+library(PMCMRplus)
+aggregate(age_at_surgery ~ Sex, data = metadata, summary)
+kruskal.test(metadata$age_at_surgery, 
+             metadata$Sex)
+kwAllPairsDunnTest(metadata$age_at_surgery, 
+                   as.factor(metadata$Sex), "BH")
+t.test(metadata$age_at_surgery~metadata$Sex)
+
+mean(metadata$age_at_surgery)
+range(metadata$age_at_surgery)
+
+
+#TABLES FOR COUNTS, PERCENTAGES - CATEGORICAL VARIABLES
+#install.packages("gmodels")
+library(gmodels)
+library(reporttools)
+
+Smoking_Status <- CrossTable(metadata$Smoking_Status, 
+                        metadata$Sex, 
+                        prop.r=TRUE, chisq = TRUE)
+pairwise.fisher.test(metadata$SampleType, metadata$stage_group,
+                     p.adjust.method = "BH")
+
+
+```
+
+##Diversity Analysis
+
+#Alpha Diversity
+Use QIIME2 generated alpha diversity metric. 
+First, test for normality. Then perform parametric or non-parametric test for differences in alpha diversity among sample types. 
+Four different alpha diversity metrics will be used; richness, evenness, Faiths PD, Shannon diversity.
+```{r}
+#Reading Alpha Diversity file
+alpha <- read_csv("alpha_diversity.csv")
+#match alpha diversity file to metadata file
+intersect(rownames(metadata),rownames(alpha))
+samples_to_keep <- intersect(rownames(metadata), rownames(alpha))
+filtered_alpha <- data.frame(alpha[samples_to_keep,])
+rownames(filtered_alpha) <- filtered_alpha$SampleID
+
+#test for normality.
+for (i in 2:5){print(shapiro.test(filtered_alpha[,i]))}
+#results show none are normal so I will have to use non-parametric tests moving forward.
+
+#use Kruska wallis test to test for significant differences bewteen sample types.
+for (i in 2:5){print(kruskal.test(filtered_alpha[,i], filtered_metadata$stage_cat))}
+
+#post-hoc test for between group differences.
+library(PMCMRplus)
+for (i in 2:5){print(kwAllPairsDunnTest(filtered_alpha[,i], as.factor(filtered_metadata$stage_cat), "BH"))}
+
+###Additional alpha diversity analysis using Ordinal Logistic Regression
+library(MASS)
+#unadjusted
+m1 <- polr(stage_cat ~ pielou_evenness,
+  data = metadata, Hess = TRUE)
+summary(m1)
+
+#adjusted for smoking and antibiotic use
+m2 <- polr(stage_cat ~ pielou_evenness + Smoking_Status + abx_6mon_prior,
+  data = metadata, Hess = TRUE)
+summary(m2)
+
+#store table
+(ctable <- coef(summary(m2)))
+
+#calculate and sotre pvalues
+p <- pnorm(abs(ctable[, "t value"]), lower.tail = FALSE) * 2
+
+## combined table
+(ctable <- cbind(ctable, "p value" = p))
+
+#confidince intervales
+(ci <- confint(m2)) # default method gives profiled CIs
+
+#OR and CI
+exp(cbind(OR = coef(m2), ci))
+
+
+##create box plot for alpha diversity measures
+#boxplot with ggplot
+ #merge the alpha diversity and metadata dataframes.
+alpha_metadata <- merge(filtered_metadata, filtered_alpha, by = 'row.names', all=TRUE)
+alpha_metadata <- data.frame(alpha_metadata, row.names = 1)
+
+#ggplot
+library(ggplot2)
+
+ggplot(data=subset(alpha_metadata, !is.na(stage_cat)), aes(x=stage_cat, y=observed_features, fill = stage_cat)) +geom_point() + 
+  ylim(c(0,370)) + 
+  stat_boxplot(geom ='errorbar', width = 0.5) +
+  geom_boxplot(alpha=1, color=1, outlier.shape = NA) +
+  labs(x = "Cancer Stage", y = "Observed Features") +
+  labs(fill = "Cancer Stage") +
+  scale_fill_manual(values=c("#1B9E77", "#D95F02", "#7570B3")) +
+  theme_bw() +
+  ggtitle("Observed Features") +
+  theme(plot.title = element_text(size = rel(1.5), face = "bold")) +
+  geom_jitter(shape=16, position=position_jitter(0.2), size = 2) +
+  theme(axis.title.x = element_text(size =16, face = "bold"))+
+  theme(axis.title.y = element_text(size = 16, face = "bold", angle = 90))+
+  theme(axis.text = element_text(size =14)) +
+  theme(legend.title = element_text(size = 14, face = "bold"))+
+  theme(legend.text = element_text(size = 14))
+
+ggplot(data=metadata, 
+       aes(x=OS_censored, y=observed_features, fill =OS_censored)) +geom_point() + 
+  ylim(c(0,370)) + 
+  stat_boxplot(geom ='errorbar', width = 0.5) +
+  geom_boxplot(alpha=1, color=1, outlier.shape = NA) +
+  labs(x = "Overall Survival", y = "Observed Features") +
+  labs(fill = "EFS") +
+  scale_fill_manual(values=c("#0072B2", "#D55E00")) +
+  theme_bw() +
+  ggtitle("Observed Features") +
+  theme(plot.title = element_text(size = rel(1.5), face = "bold")) +
+  geom_jitter(shape=16, position=position_jitter(0.2), size = 2) +
+  theme(axis.title.x = element_text(size =16, face = "bold"))+
+  theme(axis.title.y = element_text(size = 16, face = "bold", angle = 90))+
+  theme(axis.text = element_text(size =14)) +
+  theme(legend.title = element_text(size = 14, face = "bold"))+
+  theme(legend.text = element_text(size = 14))
+
+
+#correlation with alpha diversity
+plot(filtered_metadata$age_at_surgery, filtered_alpha$observed_features, 
+     xlab="Age (years)", ylab="Observed Features", 
+     xlim = c(50, 90), ylim = c(0, 400), 
+     pch=19, cex.axis = 1, cex.lab = 1.5, las=1)
+abline(lm(filtered_alpha$observed_features ~ filtered_metadata$age_at_surgery),
+       col = "blue", lwd=7)
+
+test <- cor.test(filtered_alpha$observed_features, filtered_metadata$age_at_surgery, 
+                 method=c("pearson"))    
+
+test2 <- cor.test(filtered_alpha$observed_features, filtered_metadata$age_at_surgery,
+                 method=c("spearman"))    
+
+
+```
+
+#Beta Diversity
+#use of QIIME2 generated Bray Curtis dissimilarity matrix or Weighted UniFrac distance matrix.
+# Bray Curtis
+```{r}
+#read in beta diversity files
+bray_curtis <- read_csv("bray_curtis.csv")
+bray_curtis <- as.data.frame(bray_curtis)
+rownames(bray_curtis) <- bray_curtis[,1]
+
+#match beta diversity data to metadata
+intersect(rownames(filtered_metadata),rownames(bray_curtis))
+samples_to_keep <- intersect(rownames(filtered_metadata),rownames(bray_curtis))
+filtered_bray_curtis <- as.data.frame(bray_curtis[samples_to_keep,])
+rownames(filtered_bray_curtis) <- filtered_bray_curtis[,1]
+
+#adonis test - permutational ANOVA of dissimilarities
+library(vegan)
+
+set.seed(23)
+adonis2(filtered_bray_curtis ~ filtered_metadata$stage_cat,
+        permutations = 1000, by="margin")
+
+#with covariates
+set.seed(23)
+adonis2(filtered_bray_curtis ~ filtered_metadata$OS_censored + filtered_metadata$OS_time,
+        permutations = 1000, by="margin")
+
+
+#plot beta diversity
+library(devtools)
+library(ggordiplots)
+library(ggplot2)
+bray_curtis_pcoa <- cmdscale(filtered_bray_curtis, k=2, eig = TRUE)
+barplot(bray_curtis_pcoa$eig[1:10])
+component1 <- bray_curtis_pcoa$eig[1]/sum(bray_curtis_pcoa$eig)
+component2 <- bray_curtis_pcoa$eig[2]/sum(bray_curtis_pcoa$eig)
+component1*100
+component2*100
+
+plot_data <- data.frame(pc1=bray_curtis_pcoa$points[ ,1],
+                        pc2=bray_curtis_pcoa$points[ ,2],
+                        Sample_type=filtered_metadata_bray$stage_cat)
+
+bray_plot <- ggplot(data=subset(plot_data, !is.na(Sample_type)), aes(x=pc1, y=pc2, color=Sample_type)) +  geom_point(size=2) +
+  stat_ellipse(linewidth=2) + scale_color_manual(values=c("#1B9E77", "#D95F02", "#7570B3"), 
+                                            name="Stage", labels=c("I", "II", "III"))+
+  ggtitle("Bray-Curtis") +
+  theme_bw() + xlab("PC1(4.6%)") + ylab("PC2(3.3%)") + theme(legend.position = c(0.88,0.84)) +
+  theme(text = element_text(size = 26)) + ylim(-0.5, 0.5)+ xlim(-0.5, 0.5)+
+  theme(axis.text.x=element_text(size=rel(1.2)), axis.text.y=element_text(size=rel(1.2)))
+bray_plot
+
+
+```
+
+
+##TAXA ANALYSIS
+
+
+```{r}
+#preprep data for analysis.
+#read in taxa table & set row names)
+taxa_table <- read_csv("taxa_table.csv")
+taxa_table <- as.data.frame(taxa_table)
+rownames(taxa_table) <- taxa_table[,1]
+
+#create taxa table with only samples of interest, then flip the taxa table
+#(filter taxa to match samples in the 'metadata' file).
+intersect(rownames(taxa_table), rownames(metadata))
+samples_to_keep <- intersect(rownames(taxa_table), rownames(metadata))
+filtered_taxa <- taxa_table[samples_to_keep,]
+
+#flip table so taxa are rows, samples columns
+rare_filter_table <- t(filtered_taxa)
+
+##MaAsLin2 DA analysis
+library("devtools")
+#install_github("biobakery/maaslin3")
+library(maaslin3)
+#install.packages("gtable")
+library(gtable)
+
+#unadjusted
+set.seed(1)
+fit_out <- maaslin3(input_data = filtered_taxa,
+                    input_metadata = filtered_metadata,
+                    output = 'Maalin3_output_stage',
+                    formula = '~ stage_cat',
+                    normalization = 'TSS',
+                    transform = 'LOG',
+                    reference = c('stage_cat,I'),
+                    augment = TRUE,
+                    standardize = TRUE,
+                    max_significance = 0.1,
+                    median_comparison_abundance = TRUE,
+                    median_comparison_prevalence = FALSE,
+                    max_pngs = 250,
+                    cores = 1)
+#adjusted for covariates
+set.seed(1)
+fit_out <- maaslin3(input_data = filtered_taxa,
+                    input_metadata = filtered_metadata,
+                    output = 'Maaslin3_output_OS_censored_time',
+                    formula = '~ OS_censored + OS_time',
+                    normalization = 'TSS',
+                    transform = 'LOG',
+                    augment = TRUE,
+                    standardize = TRUE,
+                    max_significance = 0.1,
+                    median_comparison_abundance = TRUE,
+                    median_comparison_prevalence = FALSE,
+                    max_pngs = 250,
+                    cores = 1)
+
+#ANCOM2 DA analysis
+library(compositions)
+library(tidyr)
+library(nlme)
+library(dplyr)
+library(ggplot2)
+library(compositions)
+library(exactRankTests)
+deps = c("exactRankTests", "nlme", "dplyr", "ggplot2", "compositions")
+for (dep in deps){
+  if (dep %in% installed.packages()[,"Package"] == FALSE){
+    install.packages(dep)
+  }
+  library(dep, character.only = TRUE)
+}
+source("~/Desktop/ANCOM2.R")
+
+
+#preprocessing step - to deal with different types of zeros before performing differential abundance analysis 
+preprocess <- feature_table_pre_process(feature_table = rare_filter_table, 
+                      meta_data = filtered_metadata, sample_var = "Saliva_sampleID", 
+                      out_cut = 0.05,zero_cut = 0.9, lib_cut = 1000,)
+
+#run main ANCOM function with preprocessed data,adjusting p-values for multiple comparisons
+# without covariates, use NULL
+rez <- ANCOM(preprocess$feature_table, preprocess$meta_data, 
+             preprocess$structure_zeros,"stage_cat", "BH", 0.1, NULL)
+View(rez[[1]])
+#with covariates
+rez <- ANCOM(preprocess$feature_table, preprocess$meta_data, 
+             preprocess$structure_zeros,"stage_cat", "BH", 0.1, "stage_cat + Sex")
+View(rez[[1]])
+
+
+#Corncob differential abundance (DA) analysis
+library(corncob)
+library(phyloseq)
+library(magrittr)
+#create the object containing the metadata and taxa to be tested.
+otu_tab <- otu_table(rare_filter_table,taxa_are_rows = TRUE)
+sam_data <- sample_data(filtered_metadata)
+phylo <- phyloseq(otu_tab, sam_data)
+
+#runs corncob DA analysis, returns plot and, DA results
+results <- differentialTest(formula = ~ stage_cat,
+                            phi.formula = ~ stage_cat,
+                            formula_null = ~ 1,
+                            phi.formula_null = ~ stage_cat,
+                            data = phylo,
+                            test = "Wald", boot = FALSE,
+                            fdr_cutoff = 0.1)
+
+results$p_fdr
+results$significant_taxa
+results$significant_models
+which(results$p <0.05)
+results$p[19]
+results$all_models[19]
+
+#wtih covariates
+results <- differentialTest(formula = ~ stage_cat + Sex,
+                            phi.formula = ~ stage_cat + Sex,
+                            formula_null = ~ 1,
+                            phi.formula_null = ~ stage_cat + Sex,
+                            data = phylo,
+                            test = "Wald", boot = FALSE,
+                            fdr_cutoff = 0.1)
+
+results$p_fdr
+results$significant_taxa
+results$significant_models
+which(results$p <0.05)
+results$p[7]
+results$all_models[7]
+
+
+#ALDEx2 DA analysis
+#install.packages("BiocManager")
+#BiocManager::install("ALDEx2")
+library(ALDEx2)
+
+#create model containing the variables to be tested.
+matrixmodel <- model.matrix(~stage_cat, filtered_metadata) 
+View(matrixmodel)
+  #or with covariates
+matrixmodel <- model.matrix(~stage_cat + Sex, filtered_metadata) 
+View(matrixmodel)
+
+#generate Monte Carlo samples of the Dirichlet distribution, performs centred log-ratio transformation.
+CLR <- aldex.clr(rare_filter_table, matrixmodel, mc.samples = 128)
+#calculates the expected values for each coefficient of a glm model on the data returned by aldex.clr
+GLM <- aldex.glm(CLR, matrixmodel)
+View(GLM)
+
+
+
+```
+
+
+##stacked barchart
+
+#for taxa file - species as columns and your samples as rows
+
+```{r}
+library(ggplot2)
+library(reshape2)
+library(ggpubr)
+library("dplyr")
+library("ggpubr")
+library("ggplot2")
+
+
+#read metadata
+metadata <- read_csv("metadata.csv")
+rownames(metadata) <- metadata$Saliva_sampleID
+View(metadata) 
+
+#read taxa file
+taxa_table <- read.csv("freature-table_top10_genera.csv", header = TRUE)
+
+taxa_table <- read_csv("~/Desktop/LungCancer_Study_March2025/Saliva_analysis_July2025/feature-table_solobacterium.csv")
+taxa_table <- as.data.frame(taxa_table)
+rownames(taxa_table) <- taxa_table[,1]
+taxa_table <- as.data.frame(taxa_table[,-c(1:1)])
+taxa_table <- as.data.frame(taxa_table[-c(110:111),])
+View(taxa_table)
+
+taxa_table <- t(taxa_table)
+
+
+#create taxa table with only samples of interest
+#(filter taxa to match samples in the metadata file).
+intersect(rownames(taxa_table), rownames(metadata))
+samples_to_keep <- intersect(rownames(taxa_table), rownames(metadata))
+filtered_taxa <- taxa_table[samples_to_keep,]
+filtered_taxa <- as.data.frame(filtered_taxa[,-c(1:1)])
+View(filtered_taxa)
+
+RA <- sweep(filtered_taxa, 1,rowSums(filtered_taxa), "/")
+
+rowSums(RA)
+colnames(RA)
+
+
+#convert data frame from a "wide" format to a "long" format
+RA_melt = melt(RA, id = c("names"))
+
+#pick colors
+colours = c( "#A54657", "#86BBD8", "#33658A", "#1B9E77", "#D95F02", "#7570B3", "#E7298A", "#66A61E" ,"#E6AB02", "#A6761D", "#666666")
+
+
+#make the plot
+stacked_boxplot = ggplot(RA_melt, aes(x = names, fill = variable, y = value*100)) + 
+    geom_bar(stat = "identity", colour = "black") + 
+    theme(axis.text.x = element_text(angle = 90, size = 14, colour = "black", vjust = 0.5, hjust = 1, face= "bold"), 
+    axis.title.y = element_text(size = 16, face = "bold"), legend.title = element_text(size = 16, face = "bold"),
+    legend.text = element_text(size = 12, face = "bold", colour = "black"), 
+    axis.text.y = element_text(colour = "black", size = 12, face = "bold")) + 
+    scale_y_continuous(expand = c(0,0)) + 
+    labs(x = "Sample", y = "Relative Abundance (%)", fill = "Genus") + 
+    scale_fill_manual(values = colours)
+stacked_boxplot
+
+
+#Plot RA of specific taxa by cancer stage
+RA <- sweep(rare_filter_table, 2, colSums(rare_filter_table), "/")
+colSums(RA)
+
+flipRA <-data.frame(t(RA))
+colnames(flipRA)
+identical(rownames(flipRA), rownames(filtered_metadata))
+
+#Box plot - RA of specific taxa against by cancer variables
+library(ggplot2)
+library(ggpubr) 
+
+#Example with Haemophilus.
+DF <- data.frame(flipRA[ ,19],filtered_metadata$stage_cat)
+RA_plot <- ggplot(data=subset(DF, !is.na(filtered_metadata.stage_cat)), aes(x=filtered_metadata.stage_cat, y=flipRA...19., fill = filtered_metadata.stage_cat)) +geom_point() + 
+  stat_boxplot(geom ='errorbar', width = 0.5) +
+  geom_boxplot(alpha=1, color=1, outlier.shape = NA) +
+  labs(x = "Cancer Stage", y = "Relative Abundance") +
+  labs(fill = "Cancer Stage") +
+  scale_fill_manual(values=c("#1B9E77", "#D95F02", "#7570B3")) +
+  theme_bw() +
+  ylim(0,0.3)
+  ggtitle("Haemophilus") +
+  theme(plot.title = element_text(size = rel(1.5), face = "bold")) +
+  geom_jitter(shape=16, position=position_jitter(0.2), size = 2) +
+  theme(axis.title.x = element_text(size =16, face = "bold"))+
+  theme(axis.title.y = element_text(size = 16, face = "bold", angle = 90))+
+  theme(axis.text = element_text(size =14)) +
+  theme(legend.title = element_text(size = 14, face = "bold"))+
+  theme(legend.text = element_text(size = 14))
+ggsave("RA_stage_Haemophilus2.pdf",  width = 6, height = 4)
+
+
+
+```
+
+##survival curves
+#time: overall OR event free survival time in months
+#status at time: censoring status 0=censored, 1=dead/event(progression/recurrence)
+
+#Kaplan-Meier
+
+```{r}
+# install.packages(c("lubridate", "ggsurvfit", "gtsummary", "tidycmprsk"))
+library("survival")
+library("survminer")
+
+#create survival objects and curves
+#sruvit() function to general curve for entrie cohort
+s1 <- survfit(Surv(OS_continuous, OS_censored) ~ 1, data = metadata)
+str(s1)
+
+#kaplan-meier plots with ggsurvit:survit2 functions
+library(ggsurvfit)
+survfit2(Surv(OS_continuous, OS_censored) ~ 1, data = metadata) |> 
+  ggsurvfit(linewidth = 1.5, color = "red") +
+  labs(
+    x = "Months",
+    y = "Overall survival probability"
+    ) + 
+  add_confidence_interval() +
+  add_risktable(size = 6,theme = list(
+        theme_risktable_default(axis.text.y.size = 16, 
+                                plot.title.size = 16))) +
+  ggeasy::easy_y_axis_labels_size(size = 18) +
+  ggeasy::easy_x_axis_labels_size(size = 18) +
+  ggeasy::easy_y_axis_title_size(size = 20) +
+  ggeasy::easy_x_axis_title_size(size = 18)
+
+
+#similar to above but split by sex
+library(ggsurvfit)
+survfit2(Surv(OS_continuous, OS_censored) ~ Sex, data = metadata) |> 
+  ggsurvfit(linewidth = 1.5) +
+  labs(
+    x = "Months",
+    y = "Overall survival probability"
+    ) + 
+  add_confidence_interval() +
+  add_risktable(size = 6,theme = list(
+        theme_risktable_default(axis.text.y.size = 16, 
+                                plot.title.size = 16))) +
+  ggeasy::easy_y_axis_labels_size(size = 18) +
+  ggeasy::easy_x_axis_labels_size(size = 18) +
+  ggeasy::easy_y_axis_title_size(size = 20) +
+  ggeasy::easy_x_axis_title_size(size = 18) +
+  scale_color_manual(values = c("#0072B2", "#D55E00")) +
+  scale_fill_manual(values = c("#0072B2", "#D55E00"))
+
+
+##Survival Analysis - Cox Hazard Ratio
+#Run loop for on all taxa.
+#unadjusted model
+for (i in 134:241){
+    cox_sum <-summary(coxph(Surv(OS_continuous, OS_censored) ~ metadata[,i], data = metadata))
+  print(cat(colnames(metadata[i]),",", cox_sum$waldtest[3],",", cox_sum$conf.int[1],",",cox_sum$conf.int[3],",",cox_sum$conf.int[4] ))
+  }
+
+#adjusted model
+for (i in 21:24){
+    cox_sum <-summary(coxph(Surv(OS_continuous, OS_censored) ~ metadata[,i]+
+                   age_at_surgery + Sex + Smoking_Status + stage_cat +
+                   abx_6mon_prior + adjuvant, data = metadata))
+  print(cat(colnames(metadata[i]),",", cox_sum$waldtest[3],",", cox_sum$conf.int[1],",",cox_sum$conf.int[3],",",cox_sum$conf.int[4] ))
+}
+
+
+# Generat Forest plots to show Cox HR results
+#install.packages("forestplot")
+library(forestplot)
+
+base_data <- tibble::tibble(mean  = c(2.30, 1.20,1798.10,6.79,5.55,1.39,1.92, 4.32, 2.14,35.66,69.26),
+                            lower = c(1.22, 1.02, 5.05,1.57,1.23,1.02,1.05,1.12,1.02,1.24,1.41),
+                            upper = c(4.34,1.42,640782.60,29.44,25.02,1.89,3.54,16.63,4.47,1022.59,3408.70),
+                            study = c("Megasphaera", "Bacteroidetes G3", "Tannerella", "Lancefieldella", "Dialister", "Peptostreptococcaceae G1","Bacilli G1", "Mycoplasma", "Treponema", "Peptostreptococcaceae G4", "Clostridiales F1 G1"),
+                            HR = c("2.30", "1.20","1.7X10^2","6.79","5.55","1.39","1.92","4.32","2.14","35.7","69.3"),
+                            pvalue = c("0.01","0.03","0.01","0.01","0.03","0.04","0.03","0.03","0.04","0.04","0.03"))
+              
+base_data |>
+  forestplot(labeltext = c(study, HR, pvalue),
+             clip = c(0.2, 6.6),
+            txt_gp = fpTxtGp(ticks=gpar(cex=1.5), label = gpar(cex=1.5)),
+             lwd.ci=4,
+             graph.pos=2,
+             xlog = TRUE) |>
+  fp_set_style(box = "royalblue",
+               line = "darkblue",
+               summary = "royalblue") |>
+  fp_add_header(study = c("", "Feature"),
+                HR = c("", "HR"),
+                pvalue = c("", "P-value")) |>
+  fp_set_zebra_style("#EFEFEF")
+
+
+#to visualize survival outcomes in relation to diversity a specific taxa, participants were be divided into present and absent groups.
+
+#set groups in conditional dataframe
+conditional <- metadata %>%
+  mutate(
+    taxa47_PA = case_when(
+      taxa47 > 0 ~ "High",
+      TRUE ~ "Low"))
+
+#plot
+fit <- survfit(Surv(OS_continuous, OS_censored) ~ taxa47_PA, data=conditional)
+ggsurvplot(fit,
+          pval = FALSE, conf.int = TRUE,
+          font.x = 16,        # X-axis label
+          font.y = 16,        # Y-axis label
+          font.tickslab = 14, # X and Y axis tick labels
+          font.legend = 12,   # Legend text
+          risk.table = "abs_pct", # Add risk table
+          risk.table.fontsize=5,
+          risk.table.col = "strata", # Change risk table color by groups
+          linetype = "strata", # Change line type by groups
+          surv.median.line = "hv", # Specify median survival
+          ggtheme = theme_bw(), # Change ggplot2 theme
+          xlim=c(0,25),
+          ylim=c(0.5,1),
+          ylab="Overall Survival Probability",
+          legend.title="Peptostreptococcaceae G1",
+          legend.labs = c("Present", "Absent"),    # change legend labels.
+          palette = c("#0072B2", "#D55E00"))
