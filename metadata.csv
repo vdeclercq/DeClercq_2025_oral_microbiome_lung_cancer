@@ -1,0 +1,65 @@
+﻿Saliva_sampleID,age_at_surgery,Sex,Smoking_Status,stage_cat,adjuvant,adjuvant_type,histological_type_cat,PDL1,Mutations,OS_time,OS_censored,EFS_time,EFS_censored,abx_6mon_prior,abx_3mon_prior
+1665_saliva,66,female,Current,I,no,,adenocarcinoma,<1%,EGFR,17,0,17,0,Yes,Yes
+1670_saliva,66,female,Never,I,no,,other,<1%,,18,0,18,0,No,No
+1678_saliva,71,female,Former,I,no,,adenocarcinoma,<1%,Other,18,0,18,0,,
+1980_saliva,72,female,Current,I,no,,adenocarcinoma,<1%,,11,0,11,0,No,No
+1983_saliva,59,female,Current,II,no,,adenocarcinoma,≥50%,KRAS,6,0,6,0,Yes,No
+1987_saliva,69,female,Former,III,yes,chemo,adenocarcinoma,1-49%,,8,0,8,0,,
+8756,57,female,Former,II,yes,chemo,adenocarcinoma,≥50%,KRAS,21,0,21,0,Yes,Yes
+AC_1485_saliva,72,female,Former,I,no,,adenocarcinoma,<1%,KRAS,25,0,25,0,,
+DM_1484_saliva,73,male,Current,I,no,,adenocarcinoma,<1%,KRAS,19,0,19,0,,
+L_1631_saliva,69,female,Former,I,no,,adenocarcinoma,1-49%,KRAS,18,0,18,0,,
+L_1895_saliva,64,male,Former,I,no,,adenocarcinoma,1-49%,Other,11,0,11,0,Yes,Yes
+L_1957_saliva,67,female,Former,I,no,,adenocarcinoma,<1%,,11,0,11,0,No,No
+L_1973_saliva,66,female,Former,III,yes,chemo; immunotherapy,adenocarcinoma,1-49%,EGFR,11,0,11,0,No,No
+L_2086_saliva,59,female,Current,I,yes,chemo,other,<1%,,4,0,4,0,Yes,No
+L-1604_Saliva,75,female,Current,II,no,,adenocarcinoma,1-49%,KRAS,21,0,21,1,Yes,Yes
+L1675_saliva,77,male,Former,I,no,,adenocarcinoma,1-49%,KRAS,18,0,18,0,No,No
+L1707_saliva,80,female,Former,II,yes,chemo,adenocarcinoma,<1%,KRAS,18,0,11,0,Yes,Yes
+LG_1598_saliva,80,female,Former,I,yes,radiation,adenocarcinoma,1-49%,,17,0,17,0,No,No
+LG_1599_saliva,65,female,Former,I,no,,adenocarcinoma,<1%,KRAS,13,1,6,1,No,No
+LG_1630_saliva,61,female,Former,III,yes,chemo,adenocarcinoma,1-49%,KRAS,17,0,17,0,Yes,Yes
+LG_1742_saliva,60,female,Current,II,yes,chemo,adenocarcinoma,1-49%,KRAS,18,0,18,0,Yes,No
+LG_1768_saliva,65,male,Current,II,yes,immunotherapy; radiation,squamous cell carcinoma,<1%,EGFR,18,0,5,1,No,No
+LG_1846_saliva,68,male,Current,II,yes,chemo; immunotherapy,adenocarcinoma,1-49%,,14,0,13,0,Yes,No
+LG_1886_saliva,66,male,Never,III,yes,chemo; radiation,adenocarcinoma,≥50%,Other,15,0,15,0,No,No
+LG_1991_saliva,67,female,Former,III,yes,chemo; radiation,adenocarcinoma,1-49%,EGFR,5,0,5,0,Yes,No
+LG_1992_saliva,78,female,Former,I,no,,adenocarcinoma,1-49%,Other,6,0,6,0,No,No
+LS_1472_saliva,61,female,Current,I,no,,squamous cell carcinoma,≥50%,,24,0,24,0,No,No
+LS_1474_saliva,73,female,Current,I,no,,squamous cell carcinoma,1-49%,,24,0,24,0,No,No
+LS_1601_saliva,63,female,Current,I,no,,adenocarcinoma,<1%,KRAS,17,0,17,0,No,No
+LS_1603_saliva,57,male,Former,III,no,,squamous cell carcinoma,1-49%,Other,18,0,18,0,Yes,No
+LS_1611_saliva,73,male,Former,I,no,,squamous cell carcinoma,≥50%,Other,17,0,17,0,No,No
+LS_1616_saliva,75,male,Former,I,no,,adenocarcinoma,<1%,,18,0,18,0,No,No
+LS_1617_saliva,77,male,Former,I,no,,adenocarcinoma,<1%,,21,0,21,0,No,No
+LS_1664_saliva,66,female,Current,III,no,,adenocarcinoma,<1%,KRAS,17,1,8,1,Yes,Yes
+LS_1685_saliva,69,female,Former,I,no,,other,<1%,,17,0,17,0,,
+LS_1722_saliva,65,male,Former,II,yes,chemo,adenocarcinoma,<1%,,18,0,11,0,No,No
+LS_1732_saliva,82,male,Former,II,no,,adenocarcinoma,1-49%,Other,2,1,2,1,Yes,No
+LS_1734_saliva,81,female,Former,I,no,,squamous cell carcinoma,1-49%,,15,0,15,0,Yes,No
+LS_1749_saliva,74,female,Current,I,no,,squamous cell carcinoma,1-49%,Other,11,1,9,1,No,No
+LS_1763_saliva,58,female,Current,I,no,,adenocarcinoma,<1%,KRAS,11,0,11,0,Yes,No
+LS_1800_saliva,78,female,Former,III,yes,radiation,adenocarcinoma,1-49%,KRAS,14,0,14,0,Yes,No
+LS_1801_saliva,52,female,Former,III,yes,chemo,other,≥50%,KRAS,14,0,14,0,No,No
+LS_1808_saliva,60,female,Former,I,no,,adenocarcinoma,<1%,Other,14,0,11,1,No,No
+LS_1821_saliva,68,female,Former,I,no,,adenocarcinoma,1-49%,KRAS,15,0,15,0,No,No
+LS_1855_saliva,72,male,Former,I,no,,adenocarcinoma,1-49%,EGFR,12,0,12,0,No,No
+LS_1863_saliva,78,male,Former,II,no,,adenocarcinoma,<1%,KRAS,11,0,11,0,Yes,Yes
+LS_1874_saliva,58,female,Never,III,yes,chemo; radiation,adenocarcinoma,≥50%,EGFR,6,1,3,1,Yes,Yes
+LS_1889_saliva,68,female,Current,III,no,,other,<1%,,8,1,2,1,No,No
+LS_1894_saliva,80,female,Former,II,no,,adenocarcinoma,<1%,Other,11,0,11,0,No,No
+LS_1924_saliva,59,female,Former,III,yes,chemo; immunotherapy,adenocarcinoma,1-49%,KRAS,11,0,11,1,No,No
+LS_1936_saliva,70,male,Former,II,yes,chemo,adenocarcinoma,1-49%,KRAS,11,0,11,0,Yes,Yes
+LS_1950_saliva,67,male,Former,II,yes,chemo,adenocarcinoma,1-49%,KRAS,11,0,12,0,Yes,No
+LS_2000_saliva,62,female,Former,I,no,,adenocarcinoma,≥50%,KRAS,7,0,3,1,No,No
+LS_2001_saliva,72,male,Former,I,no,,other,<1%,,6,0,6,0,No,No
+LS_2025_saliva,66,female,Former,I,no,,squamous cell carcinoma,<1%,,5,0,5,0,Yes,Yes
+LS_2029_saliva,66,female,Former,I,no,,adenocarcinoma,<1%,,6,0,6,0,Yes,Yes
+LS_2051_saliva,59,male,Former,III,yes,chemo,other,1-49%,EGFR,7,0,4,0,No,No
+LS_2056_saliva,64,male,Former,II,no,,squamous cell carcinoma,1-49%,,8,0,8,0,Yes,No
+LS_2063_saliva,75,female,Current,I,no,,other,<1%,,2,0,2,0,Yes,No
+LS_2074_saliva,77,female,Former,III,yes,chemo,adenocarcinoma,<1%,EGFR,6,0,6,0,Yes,No
+LS_2085_saliva,62,female,Current,III,no,,other,1-49%,,5,0,5,0,No,No
+LS_2087_saliva,77,male,Former,I,no,,other,<1%,Other,6,0,6,0,No,No
+LS_2090_saliva,57,female,Current,III,no,,adenocarcinoma,<1%,KRAS,5,0,5,0,No,No
+LS_2096_saliva,72,male,Former,I,no,,adenocarcinoma,1-49%,Other,5,0,5,0,No,No
